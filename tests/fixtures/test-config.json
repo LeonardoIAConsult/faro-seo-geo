@@ -1,0 +1,21 @@
+{
+  "_comment": "Config FIJA para los tests (neutral, sin marca real). conftest la fuerza vía SEO_FORGE_CONFIG -> el suite pasa igual en el motor vivo y en la copia empaquetada, sin depender del entorno.",
+  "site": { "url": "https://www.acme-test.com/" },
+  "brand": {
+    "domain": "acme-test.com",
+    "names": ["acme", "acme corp"],
+    "author": "Acme",
+    "org_name": "Acme Corp"
+  },
+  "files": {
+    "skip_dirs": ["node_modules", ".git", "proyectos", "assets", "css", "js"],
+    "skip_files": [],
+    "skip_name_prefixes": ["_"]
+  },
+  "audit": {
+    "noindex_allowlist": ["/legal/"],
+    "min_contextual_links": 3,
+    "thresholds": { "thin_words": 300, "title_max": 60, "meta_desc_max": 160 }
+  },
+  "geo": { "model": "gemini-2.5-flash", "gsc_queries_top": 5, "queries": [] }
+}

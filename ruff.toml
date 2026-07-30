@@ -1,0 +1,9 @@
+# Config de lint del propio motor seo-forge (R10). El auditor se audita a sí mismo.
+line-length = 120
+target-version = "py311"
+
+[lint]
+# F = pyflakes (bugs reales: imports/vars sin usar, undefined). E/W = pycodestyle.
+# I = orden de imports. E501 (largo de línea) se ignora: varios f-strings son legibles largos.
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]

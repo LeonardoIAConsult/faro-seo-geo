@@ -1,0 +1,30 @@
+# Secretos — NUNCA se suben
+.env
+credentials.json
+token.json
+youtube_token.json
+gbp_token.json
+ga4_token.json
+*.key
+*.pem
+*.p12
+
+# Config real del usuario (usa config.example.json como plantilla)
+faro.config.json
+seo-forge.config.json
+
+# Datos / salidas regenerables
+.tmp/
+*-history.json
+geo-*.json
+report-history.json
+rank-history.json
+youtube-*.json
+video_post_map.json
+
+# Entorno Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/

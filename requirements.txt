@@ -1,0 +1,17 @@
+# seo-forge — stack verificado en esta máquina (Windows + Python 3.14 + Norton)
+# Reinstalar en venv: .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+requests>=2.32
+beautifulsoup4>=4.12
+lxml>=5.0
+pyyaml>=6.0
+python-dotenv>=1.0
+# --- Google Search Console (OAuth) ---
+google-api-python-client>=2.100
+google-auth-oauthlib>=1.2
+google-auth>=2.30
+# --- Norton/Windows TLS: usa el almacén de certificados del sistema ---
+pip-system-certs>=4.0
+# --- Tests + lint (R1/R10) — CI local: check.cmd (ruff + pytest) ---
+pytest>=8.0
+ruff>=0.6
+pytrends

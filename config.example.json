@@ -1,0 +1,65 @@
+{
+  "_comment": "Faro SEO·GEO — copia este archivo a 'faro.config.json' y pon los datos de TU sitio. Los secretos (API keys, OAuth) van en .env, nunca aquí.",
+  "site": {
+    "dir": "C:/ruta/a/tu/sitio-estatico",
+    "url": "https://www.tu-sitio.com/"
+  },
+  "brand": {
+    "domain": "tu-sitio.com",
+    "names": ["tu marca", "tumarca"],
+    "author": "Tu Nombre",
+    "job_title": "Tu rol / especialidad",
+    "org_name": "Tu Empresa",
+    "logo_path": "logo.svg",
+    "phone": "",
+    "email": "contacto@tu-sitio.com",
+    "area_served": "Tu país / ciudad",
+    "sameas": ["https://www.linkedin.com/in/tu-usuario/"]
+  },
+  "youtube": {
+    "channel_id": "YOUR_CHANNEL_ID"
+  },
+  "files": {
+    "skip_dirs": ["node_modules", ".git", "assets", "css", "js"],
+    "skip_files": [],
+    "skip_name_prefixes": ["_"]
+  },
+  "audit": {
+    "noindex_allowlist": ["/legal/", "/plantillas/"],
+    "min_contextual_links": 3,
+    "thresholds": {
+      "thin_words": 300,
+      "title_max": 60,
+      "meta_desc_max": 160
+    }
+  },
+  "social": {
+    "instagram_user_id": ""
+  },
+  "alerts": {
+    "_comment": "Feeds RSS de Google Alerts. Crea alertas en google.com/alerts (tu marca, tu nombre, competencia, nicho) con entrega 'Feed RSS' y pega aquí las URLs. Vacío = alerts_monitor.py se salta.",
+    "feeds": []
+  },
+  "keywords": {
+    "_comment": "Semillas para gemini_keywords.py (expansión + clusters + intención). Vacío = usa geo.queries como fallback.",
+    "seeds": [
+      "palabra clave semilla de tu nicho",
+      "otro término que buscaría tu cliente ideal"
+    ]
+  },
+  "local": {
+    "_comment": "SEO local / Google Business Profile (gbp_pull.py). account_id + location_id NO son secretos (IDs). Descúbrelos con 'gbp_pull.py --report accounts'. Vacío = se salta. Requiere aprobación de acceso a las Business Profile APIs (ver directives/local_seo.md).",
+    "account_id": null,
+    "location_id": null
+  },
+  "geo": {
+    "model": "gemini-2.5-flash",
+    "gsc_queries_top": 5,
+    "trends_geo": "",
+    "trends_hl": "es",
+    "queries": [
+      "una pregunta de tu nicho que quieres que la IA responda citándote",
+      "otra consulta típica de tu cliente ideal"
+    ]
+  }
+}
