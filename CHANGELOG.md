@@ -3,6 +3,33 @@
 Todos los cambios notables de Faro SEO·GEO. Formato basado en
 [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
+## [0.2.0] — 2026-08-06
+
+### Added
+- **`doctor.py` — chequeo de conexiones + onboarding guiado.** Reporta por fuente
+  (Search Console, Analytics, YouTube, Bing, Business Profile, PageSpeed) si está
+  conectada, qué falta y el siguiente paso. `--probe` valida los tokens contra la
+  API; `--next` da la única acción siguiente; `--json` para integración. Directiva
+  `onboarding.md` (flujo de 0 a conectado).
+- **`health_check.py` — watchdog de salud.** Corre el chequeo maestro, compara vs la
+  corrida anterior y alarma (Telegram) si algo se rompe o el score cae.
+- **Campaña de autoridad:** `citation_kit.py` (snippets citables con enlace canónico),
+  `outreach_tracker.py` (CRM de link-building), `publish_optimize.py` (enlazado interno
+  + IndexNow al publicar).
+
+### Changed
+- **Multi-tenant real:** la identidad de marca (URL, nombre, autor, dominio) ya no está
+  hardcodeada en el código — se lee de la config. El motor corre en cualquier sitio
+  cambiando solo `faro.config.json`.
+- **195 tests** (antes 110). README al día (comando `doctor` en el quickstart).
+
+### Fixed
+- **Arranque roto:** el quickstart decía copiar a `faro.config.json` pero el motor leía
+  otro nombre → la config del comprador no cargaba. Ahora `faro.config.json` se lee por
+  defecto.
+- **`gsc_pull.py` ya no crashea con un token OAuth expirado/revocado** — re-autoriza en
+  el navegador en vez de reventar.
+
 ## [Unreleased] — 2026-07-29
 
 ### Fixed
