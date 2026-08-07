@@ -3,7 +3,7 @@ import _common as c
 
 
 def test_cfg_reads_config():
-    # valores reales de seo-forge.config.json
+    # valores reales de faro.config.json
     assert c.cfg("audit.thresholds.title_max") == 60
     assert isinstance(c.cfg("files.skip_dirs"), list)
     assert "proyectos" in c.cfg("files.skip_dirs")

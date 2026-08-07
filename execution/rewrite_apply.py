@@ -25,9 +25,12 @@ import os
 import re
 import sys
 
-BRAND = " | Your Name"
+from _common import cfg, site_url
+
+AUTHOR = cfg("brand.author", "Example Author")  # de config brand.author
+BRAND = " | " + AUTHOR
 TODAY = "2026-07-27"
-ORIGIN = "https://www.example.com"
+ORIGIN = site_url()  # de config/env (site.url)
 
 
 def esc_attr(s):
@@ -76,8 +79,8 @@ def apply_one(site, slug, body, meta):
     art = {"@context": "https://schema.org", "@type": "Article",
            "headline": title, "description": desc, "image": img, "inLanguage": "es",
            "datePublished": "2026-07-06", "dateModified": TODAY,
-           "author": {"@type": "Person", "name": "Your Name", "url": ORIGIN},
-           "publisher": {"@type": "Person", "name": "Your Name"},
+           "author": {"@type": "Person", "name": AUTHOR, "url": ORIGIN},
+           "publisher": {"@type": "Person", "name": AUTHOR},
            "mainEntityOfPage": canon}
     h = re.sub(r'<script type="application/ld\+json">\{"@context":"https://schema.org","@type":"Article".*?</script>',
                '<script type="application/ld+json">' + json.dumps(art, ensure_ascii=False) + '</script>', h, count=1, flags=re.S)

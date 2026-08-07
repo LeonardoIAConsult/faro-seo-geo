@@ -30,6 +30,35 @@ def test_resolve_local_existing(site):
     assert os.path.isfile(tgt)       # enlace bueno resuelve
 
 
+def test_vercel_routes_solo_literales(tmp_path):
+    # rewrites/redirects literales entran; los patrones regex/param se ignoran
+    import json
+    (tmp_path / "vercel.json").write_text(json.dumps({
+        "rewrites": [{"source": "/feed", "destination": "/feed.xml"},
+                     {"source": "/feed/", "destination": "/feed.xml"}],
+        "redirects": [{"source": "/blog/feed", "destination": "/feed"},
+                      {"source": "/(.*)", "destination": "https://x/$1"},   # comodín -> fuera
+                      {"source": "/blog/:slug", "destination": "/b/:slug"}],  # param -> fuera
+    }), encoding="utf-8")
+    routes = fa.load_vercel_routes(tmp_path)
+    assert "/feed" in routes            # /feed y /feed/ colapsan a /feed
+    assert "/blog/feed" in routes
+    assert "/(.*)" not in routes        # el comodín NO suprime todo
+    assert not any(":" in r for r in routes)
+
+
+def test_is_vercel_route_normaliza():
+    routes = {"/feed", "/blog/feed"}
+    assert fa.is_vercel_route("/feed", routes) is True
+    assert fa.is_vercel_route("/feed/", routes) is True        # trailing slash
+    assert fa.is_vercel_route("/feed?x=1", routes) is True     # query
+    assert fa.is_vercel_route("/otra", routes) is False
+
+
+def test_vercel_routes_sin_vercel_json(tmp_path):
+    assert fa.load_vercel_routes(tmp_path) == set()
+
+
 def test_broken_link_detected_in_fixture(site, monkeypatch):
     # corre el audit sin red sobre el fixture y verifica que caza el enlace roto
     import sys

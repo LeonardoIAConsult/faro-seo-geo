@@ -35,16 +35,16 @@ if load_dotenv:
 
 
 def _load_config() -> dict:
-    """Config única del sitio (seo-forge.config.json). Todo lo específico del sitio
+    """Config única del sitio (faro.config.json). Todo lo específico del sitio
     vive ahí, NO en el código → reusable en cualquier sitio (los secretos siguen en .env).
     Override por CONFIG en env var SEO_FORGE_CONFIG. Si falta, {} (los defaults por
     campo viven en cfg())."""
-    path = Path(os.environ.get("SEO_FORGE_CONFIG", ROOT / "seo-forge.config.json"))
+    path = Path(os.environ.get("SEO_FORGE_CONFIG", ROOT / "faro.config.json"))
     if path.exists():
         try:
             return json.loads(path.read_text(encoding="utf-8"))
         except Exception as e:
-            print(f"WARN: seo-forge.config.json no parsea ({e}); uso defaults.", file=sys.stderr)
+            print(f"WARN: faro.config.json no parsea ({e}); uso defaults.", file=sys.stderr)
     return {}
 
 
@@ -70,7 +70,7 @@ def site_dir() -> Path:
     env = os.environ.get("SEO_SITE_DIR") or cfg("site.dir")
     if env:
         return Path(env)
-    raise SystemExit("ERROR: pasa --site <ruta>, define SEO_SITE_DIR en .env, o site.dir en seo-forge.config.json")
+    raise SystemExit("ERROR: pasa --site <ruta>, define SEO_SITE_DIR en .env, o site.dir en faro.config.json")
 
 
 def site_url() -> str:

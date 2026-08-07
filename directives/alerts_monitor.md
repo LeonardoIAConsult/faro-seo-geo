@@ -11,7 +11,7 @@ que cada alerta puede entregar. Este flujo lee esos feeds; es gratis, stdlib, de
 2. Crear alertas para: `Your Name`, `Your Brand`, el dominio, y 2-3
    términos del nicho/competencia que importen.
 3. En cada alerta → **Mostrar opciones → Entregar a: Feed RSS**. Copiar la URL del feed.
-4. Pegar las URLs en `seo-forge.config.json` → `alerts.feeds` (lista). Son públicas, no secretas.
+4. Pegar las URLs en `faro.config.json` → `alerts.feeds` (lista). Son públicas, no secretas.
 
 ## Flujo
 1. `alerts_monitor.py` — lee todos los feeds, parsea menciones, extrae el URL real (los links de

@@ -12,7 +12,7 @@ if str(EXEC) not in sys.path:
 
 # Fuerza una config de test FIJA (neutral) ANTES de que _common cargue CONFIG.
 # Así el suite pasa igual en el motor vivo y en la copia empaquetada, sin depender
-# del seo-forge.config.json del entorno.
+# del faro.config.json del entorno.
 os.environ["SEO_FORGE_CONFIG"] = str(Path(__file__).resolve().parent / "fixtures" / "test-config.json")
 
 FIXTURE_SITE = Path(__file__).resolve().parent / "fixtures" / "site"

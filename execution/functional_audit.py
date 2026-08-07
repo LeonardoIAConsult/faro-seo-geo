@@ -20,6 +20,7 @@ Uso:
 """
 from __future__ import annotations
 
+import json
 import os
 import sys
 
@@ -28,6 +29,33 @@ from _common import html_files, parse, save_json, site_dir
 
 def is_external(u):
     return u.startswith(("http://", "https://", "//"))
+
+
+def load_vercel_routes(site):
+    """Rutas servidas por rewrites/redirects de vercel.json (solo fuentes LITERALES,
+    sin comodines regex/param). Evita marcar como rotas URLs que Vercel resuelve en
+    runtime y no existen como archivo en disco (p.ej. /feed -> /feed.xml)."""
+    routes = set()
+    vj = os.path.join(str(site), "vercel.json")
+    if not os.path.isfile(vj):
+        return routes
+    try:
+        with open(vj, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except Exception:
+        return routes
+    for key in ("rewrites", "redirects"):
+        for rule in data.get(key, []) or []:
+            src = (rule.get("source") or "").strip()
+            if not src or any(c in src for c in "():*?"):   # patrón regex/param, no ruta literal
+                continue
+            routes.add(src.rstrip("/") or "/")
+    return routes
+
+
+def is_vercel_route(url, routes):
+    u = url.split("#")[0].split("?")[0].strip()
+    return (u.rstrip("/") or "/") in routes
 
 
 def skip(u):
@@ -73,6 +101,7 @@ def check_endpoint(url):
 def main():
     no_net = "--no-net" in sys.argv
     site = site_dir()
+    vercel_routes = load_vercel_routes(site)
     findings = []
     broken_links, missing_assets, empty_ctas = set(), set(), set()
     form_endpoints = {}
@@ -83,7 +112,7 @@ def main():
         # enlaces internos
         for a in soup.find_all("a", href=True):
             href = a["href"]
-            if skip(href) or is_external(href):
+            if skip(href) or is_external(href) or is_vercel_route(href, vercel_routes):
                 continue
             tgt = resolve_local(site, f, href)
             if tgt and not os.path.isfile(tgt):
@@ -91,7 +120,7 @@ def main():
         # assets locales (script/link/img)
         for tag in soup.find_all(["script", "link", "img"]):
             src = tag.get("src") or tag.get("href")
-            if not src or skip(src) or is_external(src):
+            if not src or skip(src) or is_external(src) or is_vercel_route(src, vercel_routes):
                 continue
             tgt = resolve_local(site, f, src)
             if tgt and not os.path.isfile(tgt):

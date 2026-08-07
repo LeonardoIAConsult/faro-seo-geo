@@ -13,7 +13,7 @@ coherencia de marca (nombre + link al sitio) · seguidores/posts.
 ## Guía para conseguir cada API (paso a paso, para el USUARIO)
 
 > Regla: los tokens van en `.env` (NUNCA en git). Los handles/IDs no-secretos pueden ir en
-> `seo-forge.config.json` (`social.*`). Sin token, esa red simplemente no se audita.
+> `faro.config.json` (`social.*`). Sin token, esa red simplemente no se audita.
 
 ### 1. Instagram — la más útil para tu marca (Meta Graph API) · dificultad: media
 Requiere cuenta **Business o Creator** (no personal) vinculada a una **página de Facebook**.

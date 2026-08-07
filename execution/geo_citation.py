@@ -32,8 +32,7 @@ from _geo_engines import ENGINES
 HIST = ROOT / "geo-citation-history.json"
 
 BRAND_DOMAIN = cfg("brand.domain", "example.com")
-BRAND_NAMES = cfg("brand.names", ["your brand", "yourbrand",
-                                  "your brand", "your brand"])
+BRAND_NAMES = cfg("brand.names", ["your brand", "yourbrand"])
 QUERIES = cfg("geo.queries", [])
 GSC_TOP = cfg("geo.gsc_queries_top", 5)
 
@@ -89,7 +88,7 @@ def main():
             if q not in queries:
                 queries.append(q)
     if not queries:
-        print("ERROR: no hay preguntas GEO. Define geo.queries en seo-forge.config.json.")
+        print("ERROR: no hay preguntas GEO. Define geo.queries en faro.config.json.")
         return 1
 
     # ¿qué motores están disponibles? (los que no tienen key devuelven None y se saltan)

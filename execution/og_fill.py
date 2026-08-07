@@ -23,6 +23,8 @@ import os
 import re
 import sys
 
+from _common import site_url
+
 TITLE_RE = re.compile(r'<title[^>]*>(.*?)</title>', re.I | re.S)
 DESC_RE = re.compile(r'<meta\s+name=["\']description["\']\s+content=["\'](.*?)["\']', re.I | re.S)
 CANON_RE = re.compile(r'<link\s+rel=["\']canonical["\']\s+href=["\'](.*?)["\']', re.I | re.S)
@@ -78,7 +80,7 @@ def process(site, path):
     image = ''
     cover_rel = os.path.join('blog', 'img', slug + '.webp')
     if os.path.isfile(os.path.join(site, cover_rel)):
-        origin = origin_of(canonical) or 'https://www.example.com'
+        origin = origin_of(canonical) or site_url()
         image = f'{origin}/blog/img/{slug}.webp'
     block = build_block(title, desc, canonical, image)
     new = html.replace('</head>', block + '</head>', 1)

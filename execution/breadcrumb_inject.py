@@ -21,7 +21,9 @@ import os
 import re
 import sys
 
-ORIGIN = "https://www.example.com"
+from _common import site_url
+
+ORIGIN = site_url()  # de config/env (site.url); genérico si no hay config
 HAS_BC = re.compile(r'"@type"\s*:\s*"BreadcrumbList"', re.I)
 TITLE_RE = re.compile(r'<title>(.*?)</title>', re.I | re.S)
 H1_RE = re.compile(r'<h1[^>]*>(.*?)</h1>', re.I | re.S)

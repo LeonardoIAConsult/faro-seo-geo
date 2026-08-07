@@ -24,6 +24,7 @@ import sys
 from bs4 import BeautifulSoup
 
 MARKER = "<!-- related-posts -->"
+RELATED_CLASS = 'class="related-posts"'
 EMOJI_RE = re.compile(
     r'[\U0001F000-\U0001FAFF\U00002600-\U000027BF\U0001F1E6-\U0001F1FF'
     r'\U00002190-\U000021FF\U00002B00-\U00002BFF️‍]+'
@@ -33,6 +34,15 @@ EMOJI_RE = re.compile(
 def clean_title(t):
     t = EMOJI_RE.sub('', t or '')
     return re.sub(r'\s+', ' ', t).strip(' -–—:·')
+
+
+def already_has_related(html):
+    """True si el post YA tiene un bloque de relacionados. Detecta por el marker NUEVO
+    (`<!-- related-posts -->`) O por la clase — los posts viejos traen
+    `<nav class="related-posts">` SIN el comentario marcador; detectar solo por el marker
+    los daba por 'sin bloque' e inyectaba un SEGUNDO bloque (doble). Idempotente contra
+    el sitio real."""
+    return MARKER in html or RELATED_CLASS in html
 
 
 def load_map(site):
@@ -86,8 +96,8 @@ def process(site, slug, posts, n):
     if not os.path.isfile(path):
         return None
     html = open(path, encoding="utf-8").read()
-    if MARKER in html:
-        return None  # ya tiene bloque
+    if already_has_related(html):
+        return None  # ya tiene bloque (marker nuevo O nav viejo por clase)
     related = pick_related(slug, posts, n)
     if len(related) < 2:
         return None  # sin suficientes hermanos, no forzar

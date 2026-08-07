@@ -137,7 +137,7 @@ def main():
     urls = feeds()
     if not urls:
         print("Alerts: no hay feeds. Crea alertas en google.com/alerts con entrega 'Feed RSS' "
-              "y pon sus URLs en seo-forge.config.json -> alerts.feeds (o pasa --feed). Se salta.")
+              "y pon sus URLs en faro.config.json -> alerts.feeds (o pasa --feed). Se salta.")
         return
 
     names = [str(n) for n in cfg("brand.names", [])]

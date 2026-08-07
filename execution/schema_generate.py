@@ -21,7 +21,7 @@ from pathlib import Path
 from _common import ROOT, cfg, site_url  # noqa
 from bs4 import BeautifulSoup
 
-# Identidad de marca — toda en seo-forge.config.json (reusable en otro sitio).
+# Identidad de marca — toda en faro.config.json (reusable en otro sitio).
 AUTHOR = cfg("brand.author", "Your Name")
 JOB_TITLE = cfg("brand.job_title", "Consultor (tu cargo)")
 ORG_NAME = cfg("brand.org_name", "Your Brand")

@@ -1,65 +1,88 @@
 {
-  "_comment": "Faro SEO·GEO — copia este archivo a 'faro.config.json' y pon los datos de TU sitio. Los secretos (API keys, OAuth) van en .env, nunca aquí.",
+  "_comment": "PLANTILLA de config de seo-forge. Copia este archivo a 'seo-forge.config.json' y ajusta los valores a TU sitio. TODO lo especifico del sitio vive aqui (no en el codigo). Los SECRETOS (API keys, OAuth) van en .env (copia .env.example), NUNCA aqui.",
+
   "site": {
     "dir": "C:/ruta/a/tu/sitio-estatico",
-    "url": "https://www.tu-sitio.com/"
+    "url": "https://www.example.com"
   },
+
   "brand": {
-    "domain": "tu-sitio.com",
-    "names": ["tu marca", "tumarca"],
-    "author": "Tu Nombre",
-    "job_title": "Tu rol / especialidad",
+    "domain": "example.com",
+    "names": [
+      "your brand",
+      "yourbrand"
+    ],
+    "author": "Your Name",
+    "job_title": "Tu cargo o propuesta de valor en una linea",
     "org_name": "Tu Empresa",
-    "logo_path": "logo.svg",
-    "phone": "",
-    "email": "contacto@tu-sitio.com",
-    "area_served": "Tu país / ciudad",
-    "sameas": ["https://www.linkedin.com/in/tu-usuario/"]
+    "logo_path": "/logo.svg",
+    "phone": "+00000000000",
+    "email": "contacto@example.com",
+    "area_served": "Tu pais o region",
+    "sameas": [
+      "https://www.linkedin.com/in/tu-perfil/",
+      "https://www.instagram.com/tu-perfil/",
+      "https://www.youtube.com/channel/TU_CANAL",
+      "https://twitter.com/tu-perfil"
+    ]
   },
+
   "youtube": {
-    "channel_id": "YOUR_CHANNEL_ID"
+    "channel_id": null
   },
+
   "files": {
-    "skip_dirs": ["node_modules", ".git", "assets", "css", "js"],
-    "skip_files": [],
+    "skip_dirs": ["_archivo", "node_modules", ".git", ".claude", ".github", ".vscode", "proyectos", "backend"],
+    "skip_files": ["hero-preview.html", "fondos-preview.html"],
     "skip_name_prefixes": ["_"]
   },
+
   "audit": {
     "noindex_allowlist": ["/legal/", "/plantillas/"],
     "min_contextual_links": 3,
     "thresholds": {
-      "thin_words": 300,
+      "title_min": 30,
       "title_max": 60,
-      "meta_desc_max": 160
+      "desc_min": 70,
+      "desc_max": 160,
+      "thin_words": 300
     }
   },
+
   "social": {
-    "instagram_user_id": ""
+    "instagram_user_id": null
   },
+
+  "health": {
+    "_comment": "health_check.py (verificacion maestra + alarma). score_drop_alarm = cuantos puntos de Salud SEO debe caer para alarmar. Telegram opcional via TELEGRAM_BOT_TOKEN/CHAT_ID en .env.",
+    "score_drop_alarm": 5
+  },
+
   "alerts": {
-    "_comment": "Feeds RSS de Google Alerts. Crea alertas en google.com/alerts (tu marca, tu nombre, competencia, nicho) con entrega 'Feed RSS' y pega aquí las URLs. Vacío = alerts_monitor.py se salta.",
+    "_comment": "Feeds RSS de Google Alerts. Crea alertas en google.com/alerts con entrega 'Feed RSS' y pega aqui las URLs. Vacio = alerts_monitor.py se salta.",
     "feeds": []
   },
-  "keywords": {
-    "_comment": "Semillas para gemini_keywords.py (expansión + clusters + intención). Vacío = usa geo.queries como fallback.",
-    "seeds": [
-      "palabra clave semilla de tu nicho",
-      "otro término que buscaría tu cliente ideal"
-    ]
-  },
+
   "local": {
-    "_comment": "SEO local / Google Business Profile (gbp_pull.py). account_id + location_id NO son secretos (IDs). Descúbrelos con 'gbp_pull.py --report accounts'. Vacío = se salta. Requiere aprobación de acceso a las Business Profile APIs (ver directives/local_seo.md).",
+    "_comment": "SEO local / Google Business Profile (gbp_pull.py). Descubre los IDs con `gbp_pull.py --report accounts`. Vacio = se salta. Requiere aprobacion de acceso a las Business Profile APIs.",
     "account_id": null,
     "location_id": null
   },
+
+  "keywords": {
+    "_comment": "Semillas para gemini_keywords.py (expansion + clusters + intencion). Si vacio, usa geo.queries como fallback.",
+    "seeds": [
+      "tu keyword semilla 1",
+      "tu keyword semilla 2"
+    ]
+  },
+
   "geo": {
     "model": "gemini-2.5-flash",
     "gsc_queries_top": 5,
-    "trends_geo": "",
-    "trends_hl": "es",
     "queries": [
-      "una pregunta de tu nicho que quieres que la IA responda citándote",
-      "otra consulta típica de tu cliente ideal"
+      "pregunta que un usuario le haria a una IA donde tu marca deberia aparecer",
+      "otra pregunta de tu nicho para medir citacion en respuestas de IA"
     ]
   }
 }

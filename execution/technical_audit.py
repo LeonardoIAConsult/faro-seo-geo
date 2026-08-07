@@ -18,7 +18,7 @@ from pathlib import Path
 
 from _common import TMP, cfg, save_json, site_dir
 
-# Umbrales estándar (Google/mejores prácticas 2026) — override en seo-forge.config.json
+# Umbrales estándar (Google/mejores prácticas 2026) — override en faro.config.json
 TITLE_MIN = cfg("audit.thresholds.title_min", 30)
 TITLE_MAX = cfg("audit.thresholds.title_max", 60)
 DESC_MIN = cfg("audit.thresholds.desc_min", 70)

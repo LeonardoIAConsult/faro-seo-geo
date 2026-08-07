@@ -53,7 +53,7 @@ keyword y backlinks de competencia = pendiente DataForSEO (el dueño pidió cost
 
 ## Auto-fix (aplica sin preguntar — objetivo/reversible)
 - FAQPage schema: extraer 2-4 Q&A reales del post → inyectar JSON-LD (ampliar `schema_generate.py` con kind `FAQ` por post).
-- Enlaces internos contextuales: insertar 3-5 a pillar/hermanos del cluster (script `internal_links.py`, por construir).
+- Enlaces internos contextuales: el **guardián CI `ensure_links.py`** (2026-08-03, sistema #4) ya da a cada post nuevo su bloque de relacionados + inlinks de hermanos en el push; el auditor MIDE con `internal_links.py` y solo completa enlaces contextuales EN EL CUERPO si faltan (los del bloque de relacionados no cuentan como contextuales).
 - Answer-first: si el 1er párrafo no responde, **reordenar** para que la definición/respuesta vaya primero (sin inventar contenido).
 - TL;DR: añadir bloque resumen extraíble si falta.
 - OG/Twitter/alt: ya lo asegura el guardián CI (`ensure_seo.py`).
@@ -78,7 +78,9 @@ keyword y backlinks de competencia = pendiente DataForSEO (el dueño pidió cost
 - Higiene: consolidar aprendizajes viejos; no acumular ruido.
 
 ## Guardarraíles (duros)
+- **Regla de Escritura Humana (REH):** toda pieza cumple `MARCA/regla-escritura-humana.md` — humano de verdad (experiencia real + voz + edición humana), NO evasión de detectores. Corre su checklist §7 (10 casillas) al auditar; señales de "AI slop" (muletillas §2, ritmo uniforme, tono promocional) = FALLA → sugerir reescritura. El tono promocional además baja la cita en IA 26%.
 - Nunca inventar datos, testimonios ni cifras (regla Brain). Todo respaldo sale del Brain / assets reales.
+- **Citation Kit (sistema #2, 2026-08-03):** toda mención de una cifra del Informe Diagnóstico E&E 2026 (85.6% Semilla · 85% Excel+WhatsApp · 22% sin herramientas · 69.6% solo su ciudad) debe llevar el **enlace canónico del kit** (`MARCA/citation-kit-informe-eye.md`, generado por `citation_kit.py` desde `citation-kit-data.json` — única fuente autorizada). Cifra del informe suelta SIN enlace = FALLA → auto-fix: añadir el enlace canónico (objetivo/reversible). Cifra que NO esté en el data file = inventada → quitar/señalar.
 - Nunca violar la voz canónica.
 - Nunca relleno de keywords (los LLM y Google penalizan).
 - Cambios de contenido público = **auto-fix objetivo OK**; reescritura editorial = requiere OK del dueño.

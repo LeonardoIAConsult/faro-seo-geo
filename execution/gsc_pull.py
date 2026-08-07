@@ -40,6 +40,7 @@ def service():
     if _SERVICE is not None:
         return _SERVICE
     try:
+        from google.auth.exceptions import RefreshError
         from google.auth.transport.requests import Request
         from google.oauth2.credentials import Credentials
         from google_auth_oauthlib.flow import InstalledAppFlow
@@ -53,9 +54,16 @@ def service():
     if token_path.exists():
         creds = Credentials.from_authorized_user_file(str(token_path), SCOPES)
     if not creds or not creds.valid:
+        refreshed = False
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
+            try:
+                creds.refresh(Request())
+                refreshed = True
+            except RefreshError:
+                # refresh token expirado/revocado -> NO crashear: re-autorizar en el navegador
+                print("Token GSC expirado/revocado; re-autorizando en el navegador…", file=sys.stderr)
+                creds = None
+        if not refreshed:
             if not cred_path.exists():
                 raise SystemExit(
                     f"No existe {cred_path}. Descarga credentials.json de Google Cloud Console "

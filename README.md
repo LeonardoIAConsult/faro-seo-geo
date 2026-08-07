@@ -7,7 +7,7 @@
 <p align="center">
   <a href="#-español">Español</a> · <a href="#-english">English</a> ·
   <img src="https://img.shields.io/badge/python-3.11+-FB923C"> ·
-  <img src="https://img.shields.io/badge/tests-110%20passing-2ea44f"> ·
+  <img src="https://img.shields.io/badge/tests-195%20passing-2ea44f"> ·
   <img src="https://img.shields.io/badge/license-source--available-F43F5E">
 </p>
 
@@ -39,6 +39,9 @@ si la IA de verdad te cita.** Corres un comando y obtienes un informe claro y pr
   su código: lo descarga solo (crawler educado, respeta robots.txt). Ideal para agencias y consultores.
 - 🎯 **Una nota que entiendes en 5 segundos** — "Salud SEO" 0–100 con la tendencia (¿mejoré vs la
   vez pasada?).
+- 🔌 **Conexión guiada, sin adivinar** — un comando (`doctor`) te dice qué fuentes tienes conectadas
+  (Search Console, Analytics, YouTube, Bing…) y **el siguiente paso exacto** para conectar las que
+  faltan. Corre en **cualquier sitio** cambiando solo la config.
 
 ### Todo lo que audita y optimiza (en una sola herramienta)
 | Área | Qué te entrega |
@@ -59,7 +62,7 @@ si la IA de verdad te cita.** Corres un comando y obtienes un informe claro y pr
 - ✅ **Honesto.** Reporta solo lo que midió. Si un dato no está disponible, lo dice — nunca inventa
   métricas ni tendencias.
 - 🔬 **Battle-tested.** El motor **corre a diario sobre un sitio real en producción** (no es una demo)
-  y trae **110 tests que pasan**.
+  y trae **195 tests que pasan**.
 
 ### Para quién es
 Consultores SEO, agencias, y dueños de negocio o devs que quieren **rankear en Google y ser citados
@@ -75,6 +78,7 @@ pip install -r requirements.txt                     # o: -r requirements.lock (v
 cp config.example.json faro.config.json             # los datos de TU sitio
 cp .env.example .env                                # tus API keys (todas gratis)
 
+python execution/doctor.py                          # ¿qué fuentes tengo conectadas? + siguiente paso
 python execution/report_build.py                    # informe completo
 ```
 > Solo keys **gratis**: Search Console, PageSpeed, Analytics, Gemini. Opcionales de pago
@@ -109,6 +113,9 @@ measures whether AI actually cites you.** Run one command, get a clear, prioriti
 - 🔎 **Audit any site** — yours, a **client's**, or a **prospect's** — even without their code:
   it crawls it for you (polite crawler, respects robots.txt). Built for agencies and consultants.
 - 🎯 **A score you read in 5 seconds** — 0–100 "SEO Health" with trend.
+- 🔌 **Guided connection, no guessing** — one command (`doctor`) shows which sources are connected
+  (Search Console, Analytics, YouTube, Bing…) and the **exact next step** to connect the rest. Runs on
+  **any site** by just changing the config.
 
 ### Everything it audits and optimizes (in one tool)
 | Area | What you get |
@@ -126,7 +133,7 @@ measures whether AI actually cites you.** Run one command, get a clear, prioriti
 ### Why trust Faro
 - 🧱 **Deterministic, not an LLM guessing** — 90% is tested Python: consistent results, not a new "opinion" each run.
 - ✅ **Honest** — reports only what it measured. Never invents metrics or trends.
-- 🔬 **Battle-tested** — runs **daily on a real production site** (not a demo), **110 tests passing**.
+- 🔬 **Battle-tested** — runs **daily on a real production site** (not a demo), **195 tests passing**.
 
 ### Who it's for
 SEO consultants, agencies, and business owners or devs who want to **rank on Google and get cited
@@ -142,6 +149,7 @@ pip install -r requirements.txt                     # or: -r requirements.lock (
 cp config.example.json faro.config.json             # your site's data
 cp .env.example .env                                # your API keys (all free)
 
+python execution/doctor.py                          # which sources are connected? + next step
 python execution/report_build.py                    # full report
 ```
 > Only **free** keys: Search Console, PageSpeed, Analytics, Gemini. Optional paid engines
