@@ -33,6 +33,31 @@ TMP.mkdir(exist_ok=True)
 if load_dotenv:
     load_dotenv(ROOT / ".env")
 
+# Workaround de red (OPT-IN por env var, solo esta maquina) --------------------
+# Va DESPUES de load_dotenv para que el flag del .env ya este cargado.
+# En la maquina del dueño, Norton/firewall bloquea python.exe -> 108.177.12.x (la IP
+# "natural" de oauth2.googleapis.com), pero NO -> 172.217.x.x, donde el mismo Google
+# Global Frontend sirve oauth2 por SNI (cert *.googleapis.com valido). curl alcanza
+# ambas; python solo la 2a -> el refresh de OAuth (GSC/GA4/GBP) hacia ConnectTimeout.
+# Con SEO_FORGE_OAUTH2_REHOME=1 remapeamos la resolucion de oauth2.googleapis.com a las
+# IPs de www.googleapis.com (alcanzables), manteniendo SNI/Host = oauth2 -> el cert
+# valida y Google enruta bien. OPT-IN por .env (gitignored, NO viaja a Faro) para no
+# alterar la red de otros usuarios del motor. Diagnostico: 2026-08-15.
+if os.getenv("SEO_FORGE_OAUTH2_REHOME") == "1":  # pragma: no cover
+    import socket as _sock
+
+    _real_getaddrinfo = _sock.getaddrinfo
+
+    def _getaddrinfo_rehome(host, *args, **kwargs):
+        if host == "oauth2.googleapis.com":
+            try:
+                return _real_getaddrinfo("www.googleapis.com", *args, **kwargs)
+            except OSError:
+                pass  # si el remap falla, cae a la resolucion normal (no empeora)
+        return _real_getaddrinfo(host, *args, **kwargs)
+
+    _sock.getaddrinfo = _getaddrinfo_rehome
+
 
 def _load_config() -> dict:
     """Config única del sitio (faro.config.json). Todo lo específico del sitio

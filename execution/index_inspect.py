@@ -154,6 +154,58 @@ def main():
     for r in data["conflictos_canonical"][:6]:
         print(f"  ⚠ canonical: {r['url']} → Google usa {r['google_canonical']}")
 
+    if "--alert" in sys.argv:
+        _coverage_alert(data)
+
+
+def _coverage_alert(data):
+    """Auto-vigilancia: compara no-indexadas vs corrida anterior; alarma Telegram si empeora.
+
+    Historial en index-coverage-history.json (versionable, no secreto). Reusa el
+    send_telegram de health_check (mismo bot del watchdog). Solo-lectura respecto a
+    Google (no pide indexación: eso es acción de UI, sin API pública).
+    """
+    import datetime
+    import json
+
+    import health_check
+    from _common import ROOT
+
+    hist_path = ROOT / "index-coverage-history.json"
+    b = data["buckets"]
+    not_indexed = b.get("excluded", 0) + b.get("unknown", 0)
+    snap = {
+        "date": datetime.date.today().isoformat(),
+        "total": data["total"],
+        "indexed": b.get("indexed", 0),
+        "excluded": b.get("excluded", 0),
+        "unknown": b.get("unknown", 0),
+        "not_indexed": not_indexed,
+    }
+    try:
+        hist = json.load(open(hist_path, encoding="utf-8"))
+    except (FileNotFoundError, ValueError):
+        hist = []
+    prev = hist[-1] if hist else None
+    hist.append(snap)
+    with open(hist_path, "w", encoding="utf-8") as fh:
+        json.dump(hist, fh, ensure_ascii=False, indent=2)
+
+    if prev and not_indexed > prev["not_indexed"]:
+        subida = not_indexed - prev["not_indexed"]
+        urls = [r["url"] for r in (data["excluidas"] + data["desconocidas"])][:8]
+        msg = (
+            f"[seo-forge] Indexacion EMPEORO: no-indexadas {prev['not_indexed']}->{not_indexed} "
+            f"(+{subida}). Indexadas {snap['indexed']}/{snap['total']}.\nEjemplos:\n"
+            + "\n".join(f"- {u}" for u in urls)
+        )
+        health_check.send_telegram(msg)
+        print(f"index_inspect: ALARMA enviada (no-indexadas +{subida})")
+    elif prev and not_indexed < prev["not_indexed"]:
+        print(f"index_inspect: mejora {prev['not_indexed']}->{not_indexed} no-indexadas (sin alarma)")
+    else:
+        print(f"index_inspect: sin cambio en no-indexadas ({not_indexed})")
+
 
 if __name__ == "__main__":
     main()
