@@ -114,12 +114,34 @@ def render_board(cur, prev, findings, v):
         L.append(f"- HIGH {m.get('high', 0)} · forms rotos {m.get('forms_rotos', 0)} · "
                  f"schema inválido {m.get('schema_invalido', 0)} · enlaces rotos {m.get('enlaces_rotos', 0)} · "
                  f"citación IA {m.get('geo_citado', '?')}")
+    # Desglose por componente. Sin esto el tablero podia decir "SANO / de punta" con la salud
+    # tecnica en 44 y la citacion por IA en 0, porque el veredicto solo mira ROJO/REGRESION
+    # (correcto como gate de release: MED y LOW no deben bloquear). Pero un verde que esconde
+    # donde duele entrena a no mirar el tablero. El veredicto no cambia; deja de callar.
+    if cur and cur.get("componentes"):
+        comp = cur["componentes"]
+        peor = sorted(comp.items(), key=lambda kv: kv[1])[:2]
+        L.append("- Por componente: " + " · ".join(f"{k} {v}" for k, v in sorted(comp.items())))
+        flojos = [f"**{k} {v}/100**" for k, v in peor if v < 70]
+        if flojos:
+            L.append(f"- ⚠️ Lo que tira la nota abajo: {', '.join(flojos)}")
+    if cur:
+        m = cur.get("metricas", {})
+        pend = m.get("med", 0) + m.get("low", 0)
+        if pend:
+            L.append(f"- Pendientes que NO bloquean el veredicto: {m.get('med', 0)} medias · "
+                     f"{m.get('low', 0)} bajas")
+
     L.append("")
     if findings:
         L.append("## Hallazgos")
         for f in findings:
             icon = "🔴" if f["sev"] == "ROJO" else ("📉" if f["sev"] == "REGRESION" else "•")
             L.append(f"- {icon} **{f['sev']}** — {f['msg']}")
+    elif cur and (cur.get("score", 100) < 80
+                  or any(v < 70 for v in (cur.get("componentes") or {}).values())):
+        L.append("_Nada ROJO, que es lo que mira el gate. Pero la nota o algun componente estan"
+                 " bajos: hay trabajo pendiente, no es \"de punta\"._")
     else:
         L.append("_Sin hallazgos: SEO/GEO de punta._")
     L.append("\n_Generado por health_check.py (tarea seo-forge-health)._")

@@ -29,7 +29,7 @@ import time
 import xml.etree.ElementTree as ET
 
 import gsc_pull
-from _common import save_json, site_dir
+from _common import ROOT, save_json, site_dir
 
 
 def arg(name, default=None):
@@ -121,7 +121,34 @@ def summarize(rows: list[dict]) -> dict:
     }
 
 
+ESTADO = "index-coverage-state.json"
+
+
+def cargar_estado() -> dict:
+    """Ultimo veredicto conocido de Google POR URL, de corridas anteriores.
+
+    Existe porque la inspeccion se hace por lotes: en una corrida solo se preguntan unas
+    pocas URLs, pero el informe y la alarma necesitan la foto del SITIO ENTERO. Sin esto,
+    un lote de 35 URLs se leia como si el sitio tuviera 35 URLs, y la alarma comparaba un
+    trozo contra otro trozo distinto: puro ruido.
+    """
+    import json
+    try:
+        with open(ROOT / ESTADO, encoding="utf-8") as fh:
+            return json.load(fh)
+    except (FileNotFoundError, ValueError):
+        return {}
+
+
+def guardar_estado(estado: dict) -> None:
+    import json
+    with open(ROOT / ESTADO, "w", encoding="utf-8") as fh:
+        json.dump(estado, fh, ensure_ascii=False, indent=2)
+
+
 def main():
+    import datetime
+
     site = os.environ.get("GSC_SITE_URL")
     if not site:
         raise SystemExit("Define GSC_SITE_URL en .env (propiedad verificada en GSC).")
@@ -129,13 +156,37 @@ def main():
 
     one = arg("--url")
     delay = float(arg("--delay", "0.2"))
+    marcador = None
+    todas = []
     if one:
         urls = [one]
     else:
         limit = int(arg("--max", "300"))
-        urls = sitemap_urls(site_dir(), limit)
-        if not urls:
+        todas = sitemap_urls(site_dir(), limit)
+        urls = todas
+        if not todas:
             raise SystemExit(f"No hay sitemap.xml en {site_dir()} (o vacío). Pasa --url o genera el sitemap.")
+
+        # LOTE ROTATIVO (2026-09-16). Este paso inspecciona las URLs UNA A UNA contra la URL
+        # Inspection API, que va lenta por cuota: 108 URLs tardan mas de diez minutos. Esa ventana
+        # tan larga es la que se lleva por delante cualquier suspension del portatil, y por eso la
+        # rutina semanal moria SIEMPRE aqui —en el paso 2 de 9— dejando los cinco siguientes con
+        # datos de semanas atras. El arreglo de libro (S4U, para que la tarea no cuelgue de la
+        # sesion) exige ser administrador y esta cuenta no lo es.
+        # Con --lote N se inspecciona solo un trozo por corrida y se va rotando: el sitio entero
+        # queda cubierto en varias pasadas, y cada pasada cabe de sobra en la ventana. Lo que NO
+        # se inspecciono esta corrida no desaparece: sale del estado persistente (cargar_estado).
+        lote = int(arg("--lote", "0"))
+        if lote > 0 and len(todas) > lote:
+            marcador = ROOT / ".tmp" / "index_inspect_offset.txt"
+            try:
+                desde = int(marcador.read_text(encoding="utf-8").strip())
+            except Exception:
+                desde = 0
+            desde = desde % len(todas)
+            urls = (todas + todas)[desde:desde + lote]   # se da la vuelta al llegar al final
+            print(f"lote rotativo: URLs {desde + 1}-{desde + lote} de {len(todas)} "
+                  f"(la proxima corrida sigue donde esta lo dejo)")
 
     rows = []
     for i, u in enumerate(urls, 1):
@@ -143,23 +194,63 @@ def main():
         if i < len(urls):
             time.sleep(delay)
 
-    data = summarize(rows)
-    out = save_json("index_inspect.json", data)
+    # El marcador avanza AQUI, no antes: si la corrida muere a mitad del lote, la siguiente
+    # repite este mismo trozo en vez de saltarselo hasta la vuelta completa.
+    if marcador is not None:
+        marcador.parent.mkdir(parents=True, exist_ok=True)
+        marcador.write_text(str((desde + lote) % len(todas)), encoding="utf-8")
+
+    errores_corrida = sum(1 for r in rows if "error" in r)
+
+    if one:
+        # Consulta puntual: no toca el estado del sitio ni la alarma, y se guarda APARTE.
+        # Antes escribia index_inspect.json, el mismo archivo que lee el informe: un chequeo
+        # de una sola URL dejaba el tablero diciendo "de 1 URL del sitemap, 1 indexada".
+        data = summarize(rows)
+    else:
+        hoy = datetime.date.today().isoformat()
+        estado = cargar_estado()
+        for r in rows:
+            if "error" in r:          # un fallo de cuota no borra un veredicto bueno anterior
+                continue
+            estado[r["url"]] = dict(r, inspeccionada=hoy)
+        estado = {u: estado[u] for u in todas if u in estado}   # fuera lo que ya no esta en el sitemap
+        guardar_estado(estado)
+
+        filas_sitio = [estado[u] for u in todas if u in estado]
+        data = summarize(filas_sitio)
+        data["errores"] = errores_corrida
+        data["inspeccionadas_esta_corrida"] = len(urls)
+        data["sin_inspeccionar_nunca"] = [u for u in todas if u not in estado]
+        fechas = [f.get("inspeccionada") for f in filas_sitio if f.get("inspeccionada")]
+        data["dato_mas_antiguo"] = min(fechas) if fechas else None
+        data["cobertura_parcial"] = len(urls) < len(todas)
+
+    out = save_json("index_inspect_url.json" if one else "index_inspect.json", data)
     b = data["buckets"]
     print(f"index_inspect: {data['total']} URLs | indexadas={b['indexed']} "
           f"excluidas={b['excluded']} desconocidas={b['unknown']} "
           f"conflictos_canonical={len(data['conflictos_canonical'])} errores={data['errores']} -> {out}")
+    if data.get("cobertura_parcial"):
+        print(f"  (foto del sitio entero: {data['inspeccionadas_esta_corrida']} URLs frescas de hoy, "
+              f"el resto del estado guardado; dato mas antiguo {data.get('dato_mas_antiguo')})")
     for r in data["excluidas"][:10]:
         print(f"  ✗ {r['url']} — {r['motivo']}")
     for r in data["conflictos_canonical"][:6]:
         print(f"  ⚠ canonical: {r['url']} → Google usa {r['google_canonical']}")
 
-    if "--alert" in sys.argv:
+    if "--alert" in sys.argv and not one:
         _coverage_alert(data)
 
 
 def _coverage_alert(data):
-    """Auto-vigilancia: compara no-indexadas vs corrida anterior; alarma Telegram si empeora.
+    """Auto-vigilancia: compara la indexacion con la corrida anterior; alarma Telegram si empeora.
+
+    Compara PROPORCION (no-indexadas / total medido), no la cifra bruta. Motivo: con lotes
+    rotativos el numero de URLs con veredicto crece corrida a corrida mientras se completa la
+    primera vuelta, asi que la cifra bruta sube sola aunque el sitio este mejor que nunca.
+    La proporcion no tiene ese sesgo. Se exige ademas que suba en absoluto, para no alarmar
+    por un redondeo cuando el denominador se mueve.
 
     Historial en index-coverage-history.json (versionable, no secreto). Reusa el
     send_telegram de health_check (mismo bot del watchdog). Solo-lectura respecto a
@@ -174,6 +265,7 @@ def _coverage_alert(data):
     hist_path = ROOT / "index-coverage-history.json"
     b = data["buckets"]
     not_indexed = b.get("excluded", 0) + b.get("unknown", 0)
+    total = data["total"] or 1
     snap = {
         "date": datetime.date.today().isoformat(),
         "total": data["total"],
@@ -181,6 +273,8 @@ def _coverage_alert(data):
         "excluded": b.get("excluded", 0),
         "unknown": b.get("unknown", 0),
         "not_indexed": not_indexed,
+        "tasa_no_indexadas": round(not_indexed / total, 4),
+        "frescas_esta_corrida": data.get("inspeccionadas_esta_corrida", data["total"]),
     }
     try:
         hist = json.load(open(hist_path, encoding="utf-8"))
@@ -191,20 +285,30 @@ def _coverage_alert(data):
     with open(hist_path, "w", encoding="utf-8") as fh:
         json.dump(hist, fh, ensure_ascii=False, indent=2)
 
-    if prev and not_indexed > prev["not_indexed"]:
+    if not prev:
+        print(f"index_inspect: primera medicion ({not_indexed}/{data['total']} no indexadas)")
+        return
+
+    # Historial viejo (anterior a los lotes) no trae la tasa: se calcula de sus propias cifras.
+    tasa_prev = prev.get("tasa_no_indexadas")
+    if tasa_prev is None:
+        tasa_prev = prev["not_indexed"] / (prev.get("total") or 1)
+
+    empeoro = snap["tasa_no_indexadas"] > tasa_prev and not_indexed > prev["not_indexed"]
+    if empeoro:
         subida = not_indexed - prev["not_indexed"]
         urls = [r["url"] for r in (data["excluidas"] + data["desconocidas"])][:8]
         msg = (
-            f"[seo-forge] Indexacion EMPEORO: no-indexadas {prev['not_indexed']}->{not_indexed} "
-            f"(+{subida}). Indexadas {snap['indexed']}/{snap['total']}.\nEjemplos:\n"
-            + "\n".join(f"- {u}" for u in urls)
+            f"[seo-forge] Indexacion EMPEORO: no-indexadas {prev['not_indexed']}/{prev.get('total', '?')}"
+            f" -> {not_indexed}/{snap['total']} (+{subida}). Indexadas {snap['indexed']}/{snap['total']}."
+            "\nEjemplos:\n" + "\n".join(f"- {u}" for u in urls)
         )
         health_check.send_telegram(msg)
         print(f"index_inspect: ALARMA enviada (no-indexadas +{subida})")
-    elif prev and not_indexed < prev["not_indexed"]:
-        print(f"index_inspect: mejora {prev['not_indexed']}->{not_indexed} no-indexadas (sin alarma)")
+    elif snap["tasa_no_indexadas"] < tasa_prev:
+        print(f"index_inspect: mejora {tasa_prev:.1%} -> {snap['tasa_no_indexadas']:.1%} no indexadas (sin alarma)")
     else:
-        print(f"index_inspect: sin cambio en no-indexadas ({not_indexed})")
+        print(f"index_inspect: sin empeoramiento ({not_indexed}/{snap['total']} no indexadas)")
 
 
 if __name__ == "__main__":

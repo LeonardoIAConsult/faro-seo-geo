@@ -161,6 +161,16 @@ def main():
         L.append(f"\n- De **{idxreal['total']}** URLs del sitemap: **{b['indexed']} indexadas** · "
                  f"{b['excluded']} excluidas · {b['unknown']} desconocidas"
                  + (f" · {idxreal['errores']} error(es) API" if idxreal.get("errores") else ""))
+        # Honestidad sobre la cobertura: la inspeccion va por lotes rotativos, asi que la foto
+        # mezcla veredictos de varias semanas y puede haber URLs que Google aun no se ha
+        # preguntado. Decirlo evita leer "N URLs" como si fuera el sitemap entero.
+        faltan = idxreal.get("sin_inspeccionar_nunca") or []
+        if faltan:
+            L.append(f"- ℹ️ {len(faltan)} URL(s) del sitemap aún sin inspeccionar nunca "
+                     "(la inspección rota por lotes; entran en las próximas corridas)")
+        if idxreal.get("dato_mas_antiguo"):
+            L.append(f"- ℹ️ Veredicto más antiguo de esta foto: {idxreal['dato_mas_antiguo']} "
+                     f"· {idxreal.get('inspeccionadas_esta_corrida', '?')} URL(s) refrescadas en la última corrida")
         conf = idxreal.get("conflictos_canonical", [])
         if conf:
             L.append(f"- 🔴 **{len(conf)} conflicto(s) de canónica** (Google ignora tu `canonical`):")
