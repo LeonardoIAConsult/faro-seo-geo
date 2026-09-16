@@ -192,6 +192,23 @@ def probe_gsc(root: Path) -> dict:
         return {"ok": False, "error": type(e).__name__ + ": " + str(e)[:200]}
 
 
+def probe_ga4(root: Path) -> dict:
+    """Pregunta de verdad a GA4 en lugar de fiarse de que el token exista.
+
+    El chequeo offline solo mira si ga4_token.json esta presente, y un token caducado
+    esta presente igual: el doctor puede dar GA4 en verde mientras la API responde
+    invalid_grant y el sensor lleva semanas sin traer un dato. Verde por existencia de
+    archivo es un guardia decorativo."""
+    try:
+        sys.path.insert(0, str(root / "execution"))
+        import ga4_pull
+        rows = ga4_pull.run_report([], ["sessions"], 7, limit=1)
+        sesiones = rows[0].get("sessions") if rows else 0
+        return {"ok": True, "sessions_7d": sesiones}
+    except Exception as e:  # noqa: BLE001 — probe nunca debe romper el doctor
+        return {"ok": False, "error": type(e).__name__ + ": " + str(e)[:200]}
+
+
 def classify_property(site_url: str) -> str:
     """web | domain | platform. Las platform properties NO usan el esquema http/sc-domain."""
     u = (site_url or "").lower()
@@ -234,6 +251,13 @@ def render(results: list[dict], probe: dict | None) -> str:
                            "(activadas en la UI pero sin exposición por API confirmada — ver Fase 2).")
         else:
             out.append(f"⚠️ No se pudo consultar GSC: {p.get('error', 'desconocido')}")
+        g = probe.get("ga4", {})
+        if g.get("ok"):
+            out.append(f"GA4 responde: {g.get('sessions_7d', 0)} sesiones en los ultimos 7 dias.")
+        else:
+            out.append(f"🔴 GA4 NO responde pese a que el chequeo offline lo da por conectado: "
+                       f"{g.get('error', 'desconocido')}. Vuelve a autorizar con "
+                       f"`python execution/ga4_pull.py --report overview`.")
     return "\n".join(out)
 
 
@@ -243,7 +267,7 @@ def main():
     results = [evaluate_source(s, os.environ, root) for s in SOURCES]
     probe = None
     if "--probe" in argv:
-        probe = {"gsc": probe_gsc(root)}
+        probe = {"gsc": probe_gsc(root), "ga4": probe_ga4(root)}
     if "--next" in argv:
         nxt = next_action(results, SOURCES)
         if nxt is None:
