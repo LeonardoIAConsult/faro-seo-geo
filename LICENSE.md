@@ -21,7 +21,7 @@ Full noncommercial terms: https://polyformproject.org/licenses/noncommercial/1.0
 | Agency | US$399 (one-time) | Client work, teams |
 | Pro support & roadmap | on request | Priority support, custom features |
 
-To buy a commercial license or ask questions: **contacto@leonardoantolinez.com**
+Buy a commercial license: **https://www.leonardoantolinez.com/faro/en/#pricing** (your license key arrives by email). Questions: **contacto@leonardoantolinez.com**
 
 ---
 
@@ -34,4 +34,4 @@ Faro SEO·GEO es software **source-available** bajo la
 - 💼 **El uso comercial o de agencia requiere una licencia paga**
   (usarlo para clientes, dentro de una empresa, o en cualquier actividad que genere ingresos).
 
-Comprar licencia comercial o dudas: **contacto@leonardoantolinez.com**
+Comprar licencia comercial: **https://www.leonardoantolinez.com/faro/#precio** (PayPal en USD o Mercado Pago en pesos; la licencia llega a tu correo). Dudas: **contacto@leonardoantolinez.com**
