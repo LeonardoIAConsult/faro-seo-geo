@@ -193,12 +193,10 @@ def probe_gsc(root: Path) -> dict:
 
 
 def probe_ga4(root: Path) -> dict:
-    """Pregunta de verdad a GA4 en lugar de fiarse de que el token exista.
-
-    El chequeo offline solo mira si ga4_token.json esta presente, y un token caducado
-    esta presente igual: el doctor puede dar GA4 en verde mientras la API responde
-    invalid_grant y el sensor lleva semanas sin traer un dato. Verde por existencia de
-    archivo es un guardia decorativo."""
+    """Pregunta de verdad a GA4. El chequeo offline solo mira si ga4_token.json EXISTE, y un
+    token caducado existe igual: el 2026-09-15 el doctor daba GA4 en verde mientras la API
+    devolvia invalid_grant y el sensor llevaba nueve semanas sin trafico. Verde por existencia
+    de archivo es un guardia decorativo."""
     try:
         sys.path.insert(0, str(root / "execution"))
         import ga4_pull
@@ -256,8 +254,10 @@ def render(results: list[dict], probe: dict | None) -> str:
             out.append(f"GA4 responde: {g.get('sessions_7d', 0)} sesiones en los ultimos 7 dias.")
         else:
             out.append(f"🔴 GA4 NO responde pese a que el chequeo offline lo da por conectado: "
-                       f"{g.get('error', 'desconocido')}. Vuelve a autorizar con "
-                       f"`python execution/ga4_pull.py --report overview`.")
+                       f"{g.get('error', 'desconocido')}. Reautorizar: borrar el token de GA4 "
+                       f"(GA4_TOKEN, por defecto ga4_token.json) y correr "
+                       f"'.venv/Scripts/python.exe execution/ga4_pull.py', que abre el consentimiento "
+                       f"de Google en el navegador y lo vuelve a escribir.")
     return "\n".join(out)
 
 

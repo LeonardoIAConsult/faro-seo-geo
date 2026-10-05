@@ -3,6 +3,25 @@
 Todos los cambios notables de Faro SEO·GEO. Formato basado en
 [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
+## [0.2.1] — 2026-10-04
+
+### Fixed
+- **El tablero ya no dice "sano" con Google desconectado.** `health_check.py` marca ROJO si
+  una fuente remota (Search Console, índice, GEO, YouTube, Analytics, Bing, Core Web Vitals,
+  backlinks) pasa de `health.max_data_age_days` (9 por defecto), si la última corrida vino
+  vacía, o si un token de Google ya no se puede renovar. `--no-tokens` salta esa comprobación.
+- **Las rutinas desatendidas no se cuelgan.** Con `SEO_FORGE_UNATTENDED=1`, `gsc_pull` y
+  `ga4_pull` fallan en segundos ante un token vencido en vez de abrir el navegador y esperar.
+  `ga4_pull` ya no revienta con `RefreshError`.
+- **GEO:** el modelo de Gemini por defecto pasa a `gemini-3.6-flash` (2.5-flash dejó de estar
+  disponible para proyectos nuevos) y el informe registra el modelo que se usó de verdad.
+
+### Added
+- `reautorizar.py`: renueva los tres accesos de Google (Search Console, Analytics, YouTube)
+  con un solo consentimiento.
+- Directiva de Search Console: publicar la app OAuth ("En producción"). En estado "Prueba"
+  Google vence los tokens a los 7 días.
+
 ## [0.2.0] — 2026-08-06
 
 ### Added

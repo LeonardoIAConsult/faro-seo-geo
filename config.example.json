@@ -55,7 +55,8 @@
 
   "health": {
     "_comment": "health_check.py (verificacion maestra + alarma). score_drop_alarm = cuantos puntos de Salud SEO debe caer para alarmar. Telegram opcional via TELEGRAM_BOT_TOKEN/CHAT_ID en .env.",
-    "score_drop_alarm": 5
+    "score_drop_alarm": 5,
+    "max_data_age_days": 9
   },
 
   "alerts": {

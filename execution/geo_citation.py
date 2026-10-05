@@ -17,9 +17,11 @@ Requiere GOOGLE_GENERATIVE_AI_API_KEY (Gemini, gratis). Opcional OPENAI_API_KEY 
 PERPLEXITY_API_KEY para sumar esos motores. Historial: geo-citation-history.json.
 
 Uso:
-  python execution/geo_citation.py [--model gemini-2.5-flash] [--no-gsc]
+  python execution/geo_citation.py [--model gemini-3.6-flash] [--no-gsc]
 """
 from __future__ import annotations
+
+import _geo_engines
 
 import json
 import sys
@@ -135,7 +137,7 @@ def main():
 
     today = date.today().isoformat()
     snap = {"date": today, "engines": engines_run,
-            "model": (model or cfg("geo.model", "gemini-2.5-flash")),  # compat informe
+            "model": (model or _geo_engines.modelo_gemini()),  # el que se USO, no el del config
             "queries": n, "citado": citado, "mencionado": mencionado,
             "tasa_citacion": round(citado / n, 2) if n else 0,
             "por_motor": por_motor,

@@ -19,6 +19,10 @@ Uso:
   python execution/health_check.py             # corre el chequeo maestro + alarma si degradado
   python execution/health_check.py --no-build   # evalúa el report-history existente (no re-audita)
   python execution/health_check.py --dry-run    # evalúa + tablero, NO envía Telegram (para probar)
+  python execution/health_check.py --no-tokens  # no comprueba los accesos de Google (sin red)
+
+Además de lo roto en el sitio, alarma ROJO si una fuente remota pasa de
+health.max_data_age_days (9) o si un token de Google ya no refresca.
 """
 from __future__ import annotations
 
@@ -91,6 +95,94 @@ def evaluate(cur, prev, index=None, bl_cur=None, bl_prev=None, score_drop=3):
         c, p = bl_cur.get("total_backlinks", 0), bl_prev.get("total_backlinks", 0)
         if c < p:
             out.append({"sev": "REGRESION", "msg": f"Backlinks bajaron {p}→{c}"})
+    return out
+
+
+# Fuentes remotas que NO regenera report_build (las refresca run-rank-track.cmd, semanal).
+# Sin esta vigilancia el tablero dijo SANO del 28-sep al 4-oct con Search Console congelado
+# en el 16-sep: solo miraba lo que se lee del disco, y el disco siempre esta fresco.
+SOURCES = {
+    "Search Console": "gsc_opportunities.json",
+    "Indice real de Google": "index_inspect.json",
+    "Citacion IA (GEO)": "geo_citation.json",
+    "YouTube": "youtube.json",
+    "Google Analytics": "ga4_overview.json",
+    "Bing": "bing_traffic.json",
+    "Core Web Vitals": "cwv.json",
+}
+TOKENS = {"Search Console": "token.json", "Google Analytics": "ga4_token.json",
+          "YouTube (OAuth)": "youtube_token.json"}
+REAUTH = "re-autorizar: .venv/Scripts/python.exe reautorizar.py"
+
+
+def stale_findings(ages, max_days):
+    """Pura (testeable). ages = {fuente: dias | None}. None = sin archivo (fuente nunca corrida), se salta.
+    Si se retira una llave, borrar su .tmp/*.json o quitarla de SOURCES: si no, queda ROJO fijo."""
+    out = []
+    for name, age in ages.items():
+        if age is not None and age > max_days:
+            out.append({"sev": "ROJO", "msg": f"{name}: datos de hace {int(age)} dias (max {max_days}). "
+                                              "La rutina semanal no los esta refrescando"})
+    return out
+
+
+def data_ages(today=None):
+    """Edad en dias de cada fuente (mtime) + fecha del ultimo snapshot de backlinks."""
+    import time
+    now = time.time()
+    ages = {}
+    for name, fname in SOURCES.items():
+        f = TMP / fname
+        ages[name] = (now - f.stat().st_mtime) / 86400 if f.exists() else None
+    bl, _ = last_two(_load(BACKLINK_HIST))
+    if bl and bl.get("date"):
+        try:
+            ages["Backlinks"] = ((today or date.today()) - date.fromisoformat(bl["date"])).days
+        except ValueError:
+            pass
+    return ages
+
+
+def _probe_token(path):
+    """True = refresca · False = muerto (invalid_grant) · None = no se pudo comprobar (red)."""
+    from google.auth.exceptions import RefreshError
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    try:
+        creds = Credentials.from_authorized_user_file(str(path))
+    except ValueError:
+        return False  # sin refresh_token / malformado: no sirve para una rutina desatendida
+    try:
+        creds.refresh(Request())  # no se escribe a disco: solo se comprueba
+        return True
+    except RefreshError as e:
+        # 5xx/429 de Google llegan como RefreshError(retryable=True): es Google, no el token.
+        return None if getattr(e, "retryable", False) else False
+    except Exception:  # noqa: BLE001 — sin red no es un token muerto
+        return None
+
+
+def token_findings(probe=_probe_token):
+    """ROJO por cada token de Google que existe y ya no refresca."""
+    out = []
+    for name, fname in TOKENS.items():
+        p = ROOT / fname
+        if p.exists() and probe(p) is False:
+            out.append({"sev": "ROJO", "msg": f"Acceso de Google vencido ({name}): {REAUTH}"})
+    return out
+
+
+def hollow_findings(geo, index):
+    """Pura (testeable). Archivo fresco pero corrida vacia: la edad por mtime no lo ve.
+    geo_citation escribe su json aunque no corra ningun motor; index_inspect, aunque fallen
+    todas las inspecciones (cuota/permiso)."""
+    out = []
+    if geo is not None and not geo.get("engines"):
+        out.append({"sev": "ROJO", "msg": "Citacion IA (GEO): la ultima corrida no midio con ningun motor"})
+    if index:
+        n, err = index.get("inspeccionadas_esta_corrida") or 0, index.get("errores") or 0
+        if n and err >= n:
+            out.append({"sev": "ROJO", "msg": f"Indice real de Google: fallaron las {n} inspecciones de la ultima corrida"})
     return out
 
 
@@ -203,6 +295,10 @@ def main():
     index = _load(TMP / "index_inspect.json")
     bl_cur, bl_prev = last_two(_load(BACKLINK_HIST))
     findings = evaluate(cur, prev, index, bl_cur, bl_prev, score_drop)
+    findings += stale_findings(data_ages(), int(cfg("health.max_data_age_days", 9)))
+    findings += hollow_findings(_load(TMP / "geo_citation.json"), index)
+    if "--no-tokens" not in sys.argv:
+        findings += token_findings()
     v = verdict(findings)
 
     HEALTH_MD.write_text(render_board(cur, prev, findings, v), encoding="utf-8")

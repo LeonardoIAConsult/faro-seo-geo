@@ -61,9 +61,19 @@ def service():
     if token_path.exists():
         creds = Credentials.from_authorized_user_file(str(token_path), SCOPES)
     if not creds or not creds.valid:
+        from google.auth.exceptions import RefreshError
+        refreshed = False
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
+            try:
+                creds.refresh(Request())
+                refreshed = True
+            except RefreshError:
+                print("Token GA4 expirado/revocado; re-autorizando en el navegador…", file=sys.stderr)
+        if not refreshed:
+            # Mismo motivo que gsc_pull.service(): desatendido, el navegador cuelga la rutina.
+            if os.environ.get("SEO_FORGE_UNATTENDED"):
+                raise SystemExit("Token GA4 expirado/revocado y rutina desatendida: no se abre "
+                                 "navegador. Re-autorizar a mano: .venv/Scripts/python.exe reautorizar.py")
             if not cred_path.exists():
                 raise SystemExit(
                     f"No existe {cred_path}. Descarga credentials.json (OAuth Desktop app + "

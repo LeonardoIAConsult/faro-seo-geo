@@ -28,6 +28,14 @@ from urllib.parse import urlparse
 GEMINI_API = "https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={k}"
 
 
+def modelo_gemini() -> str:
+    """Modelo que se usa de verdad. FUENTE UNICA: quien ejecuta y quien registra
+    tienen que leer de aqui. Antes geo_citation ejecutaba con el default de este
+    fichero y registraba lo que dijera faro.config.json, asi que el historico
+    de citacion decia un modelo y se habia usado otro."""
+    return os.environ.get("GEO_GEMINI_MODEL", "gemini-3.6-flash")
+
+
 def domain_of(url_or_title: str) -> str:
     """Normaliza un URL o título a dominio 'registrable' en minúsculas, sin www.
     Devuelve '' si el texto no contiene un dominio real (title sin dominio)."""
@@ -45,13 +53,19 @@ def domain_of(url_or_title: str) -> str:
     return d[4:] if d.startswith("www.") else d
 
 
+# OJO (2026-09-17): el modelo por defecto era gemini-2.5-flash y dejo de existir
+# para proyectos nuevos ("no longer available to new users" -> HTTP 404). Al mover
+# el Brain a su propio proyecto de Google el GEO se habria roto en silencio.
+# CAMBIO DE INSTRUMENTO: la tasa de citacion medida con 2.5-flash NO es comparable
+# con la de 3.6-flash. El informe guarda el modelo usado; al comparar series
+# historicas de GEO, cortar en esta fecha. Se puede fijar otro con GEO_GEMINI_MODEL.
 # ---------------- Gemini (gratis) ----------------
 def gemini(query, model=None):
     key = os.environ.get("GOOGLE_GENERATIVE_AI_API_KEY")
     if not key:
         return None
     import requests
-    model = model or os.environ.get("GEO_GEMINI_MODEL", "gemini-2.5-flash")
+    model = model or modelo_gemini()
     body = {"contents": [{"parts": [{"text": query}]}], "tools": [{"google_search": {}}]}
     r = requests.post(GEMINI_API.format(m=model, k=key), json=body, timeout=60)
     r.raise_for_status()
@@ -77,7 +91,7 @@ def gemini_generate(prompt, model=None, grounding=False):
     if not key:
         return None
     import requests
-    model = model or os.environ.get("GEO_GEMINI_MODEL", "gemini-2.5-flash")
+    model = model or modelo_gemini()
     body = {"contents": [{"parts": [{"text": prompt}]}]}
     if grounding:
         body["tools"] = [{"google_search": {}}]

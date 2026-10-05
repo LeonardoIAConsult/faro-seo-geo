@@ -64,6 +64,12 @@ def service():
                 print("Token GSC expirado/revocado; re-autorizando en el navegador…", file=sys.stderr)
                 creds = None
         if not refreshed:
+            # Desatendido (tarea programada): abrir el navegador cuelga la rutina sin nadie
+            # delante. El 28-sep se quedo esperando hasta que Windows la mato y se llevo los
+            # siete pasos siguientes. Aqui falla rapido; health_check avisa por Telegram.
+            if os.environ.get("SEO_FORGE_UNATTENDED"):
+                raise SystemExit("Token GSC expirado/revocado y rutina desatendida: no se abre "
+                                 "navegador. Re-autorizar a mano: .venv/Scripts/python.exe reautorizar.py")
             if not cred_path.exists():
                 raise SystemExit(
                     f"No existe {cred_path}. Descarga credentials.json de Google Cloud Console "

@@ -10,7 +10,7 @@ impresiones). Es gratis y es el mejor combustible del SEO. Se hace UNA vez.
    - Habilitar **"Google Search Console API"**.
    - APIs y servicios → Credenciales → Crear credenciales → **ID de cliente OAuth** → tipo **App de escritorio**.
    - Descargar el JSON → guardarlo como `credentials.json` en `TOOLS/seo-forge/` (ya en `.gitignore`).
-3. **Pantalla de consentimiento OAuth:** modo "Testing" está bien; agregar como usuario de prueba la cuenta que tiene verificada la propiedad en GSC: **`tu-cuenta-gsc@gmail.com`** (misma cuenta del dueño). Autorizar con ESA cuenta en el navegador.
+3. **Pantalla de consentimiento OAuth:** autorizar con la cuenta que tiene verificada la propiedad en GSC: **`tu-cuenta-gsc@gmail.com`**. **⚠️ Publicar la app ("En producción"), NO dejarla en "Prueba":** en Prueba Google vence el refresh token a los **7 días** y TODAS las rutinas mueren en silencio a la semana (pasó 06-ago, 23-sep). Para publicar: Google Auth Platform → *Información de la marca* (página principal, política de privacidad, condiciones, dominio autorizado) → *Público* → **Publicar app**. Uso propio: no hace falta verificación de Google; la pantalla mostrará "app no verificada" → *Configuración avanzada → Ir a <nombre de tu app OAuth>*. Tras publicar, re-autorizar UNA vez: `.venv/Scripts/python.exe reautorizar.py`.
 4. Copiar `.env.example` a `.env` y confirmar `GSC_SITE_URL=https://www.example.com/`.
 
 ## Primer uso (abre navegador para autorizar)
