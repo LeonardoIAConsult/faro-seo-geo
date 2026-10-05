@@ -3,6 +3,19 @@
 Todos los cambios notables de Faro SEO·GEO. Formato basado en
 [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 
+## [0.2.2] — 2026-10-05
+
+### Fixed
+- **`health_check` ya no se cae en una instalación nueva.** Sin sitio configurado, `--no-build`
+  terminaba con `SystemExit` por un chequeo opcional del sitio. Ahora esos chequeos se saltan.
+- **La auditoría técnica ya no castiga páginas `noindex`** por el largo del título (por ejemplo,
+  plantillas de correo que nunca salen en el buscador).
+
+### Added
+- **Alarma de copia local desfasada:** si la carpeta del sitio es un repo git y va detrás de
+  `origin/main` según el último `git fetch`, `health_check` lo marca en rojo: el informe estaría
+  auditando una versión vieja. Haz `git fetch` antes de correrlo para que la comparación sea actual.
+
 ## [0.2.1] — 2026-10-04
 
 ### Fixed

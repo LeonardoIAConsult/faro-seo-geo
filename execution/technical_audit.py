@@ -50,6 +50,10 @@ def audit(pages):
         noindex = "noindex" in (p["meta_robots"] or "").lower()
         if p["title_len"] == 0:
             add("HIGH", u, "Sin <title>", "Agrega un title único de 30-60 chars con la keyword principal.")
+        # Largo del title = como se ve en el buscador. Una pagina noindex no sale en el buscador
+        # (plantillas de email del embudo): exigirle 30-60 era ruido que bajaba la nota.
+        elif noindex:
+            pass
         elif p["title_len"] > TITLE_MAX:
             add("MED", u, f"Title largo ({p['title_len']} chars)", f"Recorta a <= {TITLE_MAX}.")
         elif p["title_len"] < TITLE_MIN:

@@ -7,7 +7,7 @@
 <p align="center">
   <a href="#-español">Español</a> · <a href="#-english">English</a> ·
   <img src="https://img.shields.io/badge/python-3.11+-FB923C"> ·
-  <img src="https://img.shields.io/badge/tests-218%20passing-2ea44f"> ·
+  <img src="https://img.shields.io/badge/tests-224%20passing-2ea44f"> ·
   <img src="https://img.shields.io/badge/license-source--available-F43F5E">
 </p>
 
@@ -62,7 +62,7 @@ si la IA de verdad te cita.** Corres un comando y obtienes un informe claro y pr
 - ✅ **Honesto.** Reporta solo lo que midió. Si un dato no está disponible, lo dice — nunca inventa
   métricas ni tendencias.
 - 🔬 **Battle-tested.** El motor **corre a diario sobre un sitio real en producción** (no es una demo)
-  y trae **218 tests que pasan**.
+  y trae **224 tests que pasan**.
 
 ### Para quién es
 Consultores SEO, agencias, y dueños de negocio o devs que quieren **rankear en Google y ser citados
@@ -133,7 +133,7 @@ measures whether AI actually cites you.** Run one command, get a clear, prioriti
 ### Why trust Faro
 - 🧱 **Deterministic, not an LLM guessing** — 90% is tested Python: consistent results, not a new "opinion" each run.
 - ✅ **Honest** — reports only what it measured. Never invents metrics or trends.
-- 🔬 **Battle-tested** — runs **daily on a real production site** (not a demo), **218 tests passing**.
+- 🔬 **Battle-tested** — runs **daily on a real production site** (not a demo), **224 tests passing**.
 
 ### Who it's for
 SEO consultants, agencies, and business owners or devs who want to **rank on Google and get cited

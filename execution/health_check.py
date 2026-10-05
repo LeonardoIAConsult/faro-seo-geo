@@ -186,6 +186,47 @@ def hollow_findings(geo, index):
     return out
 
 
+def drift_findings(behind, ahead):
+    """Pura (testeable). Commits que la copia local del sitio va detras/delante de origin/main
+    DESPUES del pull de run-health-check.cmd. Si quedan, el pull fallo (arbol sucio o rama
+    divergida) y el informe esta auditando una web vieja (REVISOR 4-oct)."""
+    if behind is None:
+        return []
+    # Solo "atras" es ROJO: "adelante" son commits locales sin publicar (audita algo MAS nuevo
+    # que produccion, no viejo) y lo resuelve el push de quien los hizo.
+    if behind:
+        return [{"sev": "ROJO", "msg": f"Copia local del sitio {behind} commit(s) detras de origin/main "
+                                       f"(adelante {ahead}, segun el ultimo fetch): el informe audita una version vieja"}]
+    return []
+
+
+def site_drift():
+    """(atras, adelante) de la copia local vs origin/main; (None, None) si no se puede saber."""
+    try:
+        out = subprocess.run(["git", "-C", str(site_dir()), "rev-list", "--left-right", "--count",
+                              "HEAD...origin/main"], capture_output=True, text=True, timeout=30)
+        ahead, behind = (int(x) for x in out.stdout.split())
+        return behind, ahead
+    except (Exception, SystemExit):  # noqa: BLE001 — sin git, sin remoto o sin sitio configurado
+        return None, None
+
+
+def critical_css_findings(html, css):
+    """Pura (testeable). index.html lleva en linea el CSS critico con el sha256 de la style.css
+    de la que salio (.github/scripts/critical_css.mjs del sitio). Si style.css cambia y no se
+    regenera, la home pinta con reglas viejas hasta que llega la hoja completa (2026-10-04)."""
+    import hashlib
+    import re
+    m = re.search(r"critical-css:start style\.css sha256:([0-9a-f]{16})", html or "")
+    if not m or css is None:
+        return []
+    actual = hashlib.sha256(css.replace("\r\n", "\n").encode("utf-8")).hexdigest()[:16]
+    if actual != m.group(1):
+        return [{"sev": "ROJO", "msg": "CSS critico de la home desactualizado: style.css cambio. "
+                                       "Regenerar con node .github/scripts/critical_css.mjs (sitio)"}]
+    return []
+
+
 def verdict(findings):
     """Pura (testeable). 'DEGRADADO' si hay ROJO/REGRESION; si no 'SANO'."""
     return "DEGRADADO" if any(f["sev"] in ("ROJO", "REGRESION") for f in findings) else "SANO"
@@ -297,6 +338,16 @@ def main():
     findings = evaluate(cur, prev, index, bl_cur, bl_prev, score_drop)
     findings += stale_findings(data_ages(), int(cfg("health.max_data_age_days", 9)))
     findings += hollow_findings(_load(TMP / "geo_citation.json"), index)
+    if "--no-build" not in sys.argv:  # solo en la corrida real, que audita desde el disco
+        findings += drift_findings(*site_drift())
+        # site_dir() hace SystemExit sin sitio configurado (instalacion nueva de Faro): este
+        # chequeo es opcional y no puede tumbar el health entero (Verify de Faro, 4-oct).
+        try:
+            sd = Path(site_dir())
+            findings += critical_css_findings((sd / "index.html").read_text(encoding="utf-8"),
+                                              (sd / "css" / "style.css").read_text(encoding="utf-8"))
+        except (OSError, SystemExit):
+            pass
     if "--no-tokens" not in sys.argv:
         findings += token_findings()
     v = verdict(findings)

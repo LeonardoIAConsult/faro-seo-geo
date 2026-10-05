@@ -216,3 +216,73 @@ def test_sources_son_los_archivos_que_lee_el_informe():
     informe = (Path(hc.__file__).with_name("report_build.py")).read_text(encoding="utf-8")
     for fname in hc.SOURCES.values():
         assert f'load("{fname}")' in informe, fname
+
+
+def test_drift_rojo_si_la_copia_va_atrasada_o_divergida():
+    assert hc.drift_findings(3, 0)[0]["sev"] == "ROJO"
+    assert hc.drift_findings(0, 1) == []  # adelante = sin publicar, no viejo
+    assert hc.drift_findings(0, 0) == []
+    assert hc.drift_findings(None, None) == []
+
+
+def test_site_drift_con_repo_git_real(tmp_path, monkeypatch):
+    # Si el rev-list se escribe mal, site_drift devuelve (None, None) y la vigilancia se apaga
+    # en silencio; la prueba pura no lo ve (REVISOR B6).
+    import subprocess
+
+    def g(cwd, *a):
+        subprocess.run(["git", "-C", str(cwd), *a], check=True, capture_output=True)
+
+    def commit(repo, archivo, texto, msg):
+        (repo / archivo).write_text(texto)
+        g(repo, "add", archivo)
+        g(repo, "commit", "-qm", msg)
+
+    remoto, local, otro = tmp_path / "remoto.git", tmp_path / "local", tmp_path / "otro"
+    g(tmp_path, "init", "-q", "--bare", "-b", "main", str(remoto))
+    for repo in (local, otro):
+        g(tmp_path, "clone", "-q", str(remoto), str(repo))
+        g(repo, "config", "user.email", "t@t")
+        g(repo, "config", "user.name", "t")
+    commit(local, "a", "0", "base")
+    g(local, "push", "-q", "origin", "HEAD:main")
+    g(otro, "pull", "-q", "origin", "main")
+    commit(otro, "b", "1", "r1")
+    commit(otro, "b", "2", "r2")
+    g(otro, "push", "-q", "origin", "HEAD:main")
+    commit(local, "c", "x", "local")
+    g(local, "fetch", "-q", "origin")
+    monkeypatch.setattr(hc, "site_dir", lambda: local)
+    assert hc.site_drift() == (2, 1)
+
+
+def test_critical_css_rojo_si_style_cambio():
+    import hashlib
+    css = "a{color:red}\n"
+    h = hashlib.sha256(css.encode()).hexdigest()[:16]
+    html = f"<!-- critical-css:start style.css sha256:{h} — x -->"
+    assert hc.critical_css_findings(html, css) == []
+    assert hc.critical_css_findings(html, css.replace("\n", "\r\n")) == []  # CRLF no cuenta
+    assert hc.critical_css_findings(html, css + "b{}")[0]["sev"] == "ROJO"
+    assert hc.critical_css_findings("<html>sin marcador</html>", css) == []
+
+
+def test_main_sin_sitio_configurado_no_se_cae(tmp_path, monkeypatch):
+    # Instalacion nueva de Faro: site_dir() hace SystemExit. Los chequeos opcionales del sitio
+    # (copia desfasada, CSS critico) no pueden tumbar el health entero (Verify de Faro, 4-oct).
+    monkeypatch.setattr(hc, "TMP", tmp_path)
+    monkeypatch.setattr(hc, "HEALTH_MD", tmp_path / "hs.md")
+    monkeypatch.setattr(hc, "REPORT_HIST", tmp_path / "rh.json")
+    monkeypatch.setattr(hc, "BACKLINK_HIST", tmp_path / "bh.json")
+    (tmp_path / "rh.json").write_text('{"snapshots": [{"date": "x", "score": 90, "metricas": {}}]}',
+                                      encoding="utf-8")
+
+    def sin_sitio():
+        raise SystemExit("sin sitio")
+    monkeypatch.setattr(hc, "site_dir", sin_sitio)
+    monkeypatch.setattr(hc, "token_findings", lambda: [])
+    monkeypatch.setattr(hc, "send_telegram", lambda m: None)
+    # --no-build: es el caso que tumbaba el health en Faro (el chequeo del CSS critico corria
+    # tambien sin build y llamaba a site_dir). Con build, report_build ya avisa "configura tu sitio".
+    monkeypatch.setattr(sys, "argv", ["health_check.py", "--no-build", "--no-tokens"])
+    assert hc.main() == 0
