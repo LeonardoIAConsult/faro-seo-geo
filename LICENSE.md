@@ -35,3 +35,5 @@ Faro SEO·GEO es software **source-available** bajo la
   (usarlo para clientes, dentro de una empresa, o en cualquier actividad que genere ingresos).
 
 Comprar licencia comercial: **https://www.leonardoantolinez.com/faro/#precio** (PayPal en USD o Mercado Pago en pesos; la licencia llega a tu correo). Dudas: **contacto@leonardoantolinez.com**
+
+Condiciones del uso comercial (alcance de los planes, entrega de la licencia, **retracto de 5 días hábiles con reembolso completo**, garantías): **https://www.leonardoantolinez.com/faro/licencia-comercial.html** · English: **https://www.leonardoantolinez.com/faro/en/licencia-comercial.html**

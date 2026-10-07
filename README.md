@@ -88,7 +88,7 @@ python execution/report_build.py                    # informe completo
 
 ### Licencia y precio
 Gratis para uso **personal / evaluación**. Uso **comercial o de agencia** requiere licencia:
-**US$99 (solo) · US$399 (agencia)**. Ver [LICENSE](LICENSE.md) · **[Comprar la licencia →](https://www.leonardoantolinez.com/faro/#precio)** (PayPal en USD o Mercado Pago en pesos a la TRM del día; la licencia llega a tu correo) · Dudas: contacto@leonardoantolinez.com
+**US$99 (solo) · US$399 (agencia)**. Ver [LICENSE](LICENSE.md) · **[Comprar la licencia →](https://www.leonardoantolinez.com/faro/#precio)** (PayPal en USD o Mercado Pago en pesos a la TRM del día; la licencia llega a tu correo; retracto de 5 días hábiles) · [Acuerdo de Licencia Comercial](https://www.leonardoantolinez.com/faro/licencia-comercial.html) · Dudas: contacto@leonardoantolinez.com
 
 ---
 
@@ -159,7 +159,7 @@ python execution/report_build.py                    # full report
 
 ### License & pricing
 Free for **personal / evaluation** use. **Commercial or agency** use requires a license:
-**US$99 (solo) · US$399 (agency)**. See [LICENSE](LICENSE.md) · **[Buy a license →](https://www.leonardoantolinez.com/faro/en/#pricing)** (PayPal in USD; your license key arrives by email) · Questions: contacto@leonardoantolinez.com
+**US$99 (solo) · US$399 (agency)**. See [LICENSE](LICENSE.md) · **[Buy a license →](https://www.leonardoantolinez.com/faro/en/#pricing)** (PayPal in USD; your license key arrives by email; 5-business-day withdrawal right) · [Commercial License Agreement](https://www.leonardoantolinez.com/faro/en/licencia-comercial.html) · Questions: contacto@leonardoantolinez.com
 
 ---
 
